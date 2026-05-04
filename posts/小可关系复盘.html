@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小可 · 关系复盘报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;
+    --ink-rgb:10,10,11;
+    --paper:#f1efea;
+    --paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;
+    --ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:2.5vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.fit-contain > img{object-fit:contain;object-position:center center}
+  .frame-img.r-16x9{aspect-ratio:16/9;max-height:64vh}
+  .frame-img.r-16x10{aspect-ratio:16/10;max-height:56vh}
+  .frame-img.r-4x3{aspect-ratio:4/3;max-height:56vh}
+  .frame-img.r-3x2{aspect-ratio:3/2;max-height:46vh}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .frame-img.r-1x1{aspect-ratio:1/1;max-height:50vh}
+  .frame-img.h-16{height:16vh}
+  .frame-img.h-18{height:18vh}
+  .frame-img.h-22{height:22vh}
+  .frame-img.h-26{height:26vh}
+  .frame-img.h-28{height:28vh}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .frame.grid-2-7-5,.frame.grid-2-6-6,.frame.grid-2-8-4,.frame.grid-3-3,.frame.grid-6{display:grid}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;letter-spacing:0;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.3)}
+  .stat-card .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-card .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-card .stat-nb .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;letter-spacing:0;opacity:.72;margin-left:.14em}
+  .stat-card .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .grid-4 .stat-card .stat-nb{font-size:5vw}
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(0,1fr);gap:2.4vh 2vw}
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+  [data-anim]{opacity:1!important;transform:none!important}
+  @media (max-width:900px){
+    .display{font-size:16vw}.display-zh{font-size:12vw}.h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}.h-xl{font-size:9vw}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+  .nb{font-family:var(--serif-en);font-weight:700;font-size:2.2vw;opacity:.35;margin-right:.8vw;font-feature-settings:"tnum"}
+  .item{display:flex;align-items:flex-start;gap:1.2vw;padding:1.5vh 0;border-top:1px solid rgba(127,127,127,.2);font-family:var(--sans-zh);font-size:max(14px,1.15vw);line-height:1.65;opacity:.88}
+  .item:last-child{border-bottom:1px solid rgba(127,127,127,.2)}
+  .item .t{font-family:var(--serif-zh);font-weight:700;font-size:max(16px,1.35vw)}
+</style>
+</head>
+<body>
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → 翻页 · ESC 索引</div>
+<div id="deck">
+
+<!-- ====== 01 · 封面 ====== -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Relationship Retrospective · 2026</div><div>01 / 15</div></div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>基于 110,840 条聊天记录的分析</div>
+    <h1 class="h-hero" data-anim>小可</h1>
+    <h2 class="h-sub" data-anim>关系复盘报告</h2>
+    <p class="lead" style="max-width:58vw" data-anim>三年感情 · 268,002 条微信消息 · 一段关系的从生到熄</p>
+    <div class="meta-row" data-anim><span>2020 秋 → 2023 冬</span><span>·</span><span>西安交大城市学院</span></div>
+  </div>
+  <div class="foot"><div>一份关于两个人如何错过彼此的复盘</div><div>— 2026.05 —</div></div>
+</section>
+
+<!-- ====== 02 · 幕封：数据 ====== -->
+<section class="slide hero light">
+  <div class="chrome"><div>Act I · The Numbers</div><div>02 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act I</div>
+    <h1 class="h-hero" style="font-size:8.5vw" data-anim>数据</h1>
+    <p class="lead" style="max-width:55vw" data-anim>268,002 条消息中，她对你说了 110,840 句话。</p>
+  </div>
+  <div class="foot"><div>第一章 · 数字不会说谎</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 03 · 数据大字报 ====== -->
+<section class="slide light">
+  <div class="chrome"><div>Data · 核心数字</div><div>03 / 15</div></div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>A Relationship in Numbers</div>
+    <h2 class="h-xl" data-anim>这三年，在数据里</h2>
+    <div class="grid-4" style="margin-top:5vh">
+      <div class="stat-card" data-anim><div class="stat-label">Together</div><div class="stat-nb">3 <span class="stat-unit">年</span></div><div class="stat-note">2020年秋 → 2023年初</div></div>
+      <div class="stat-card" data-anim><div class="stat-label">Her Messages</div><div class="stat-nb">110K <span class="stat-unit">条</span></div><div class="stat-note">纯文字，不含图片和表情</div></div>
+      <div class="stat-card" data-anim><div class="stat-label">Photos</div><div class="stat-nb">11,573</div><div class="stat-note">从 2018 到 2026 的碎片</div></div>
+      <div class="stat-card" data-anim><div class="stat-label">The End</div><div class="stat-nb" style="font-size:4.2vw">2023.01.06</div><div class="stat-note">深夜，两条长消息，三年结束</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>数据来源：WechatExporter 导出 · 私聊_Santa.html</div><div>Data · Numbers</div></div>
+</section>
+
+<!-- ====== 04 · 幕封：她 ====== -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Act II · Who She Is</div><div>04 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act II</div>
+    <h1 class="h-hero" style="font-size:8.5vw" data-anim>她</h1>
+    <p class="lead" style="max-width:55vw" data-anim>射手座 · ENFP · 焦虑型依恋 · 可爱但内心敏感</p>
+  </div>
+  <div class="foot"><div>第二章 · 她的画像</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 05 · 她的两面 ====== -->
+<section class="slide light">
+  <div class="chrome"><div>Portrait · 她的两面</div><div>05 / 15</div></div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Surface &amp; Depth</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>你看到的她 vs 真正的她</h2>
+    <div class="grid-2-6-6" style="gap:5vw 4vh">
+      <div data-anim="left" style="padding:3vh 2vw; border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:.9">Surface · 表面</div>
+        <h3 class="h-md" style="margin-top:2vh">活泼可爱的射手座</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--sans-zh); font-size:max(14px,1.1vw); line-height:1.65; opacity:.85">
+          <li>射手座，活泼外向，爱笑爱闹</li>
+          <li>emoji 刷屏——开心时发几十上百个 🍙🐶💕</li>
+          <li>口头禅："好哒""哭惹""想你鸭"</li>
+          <li>喜欢饭团、奶茶、海底捞</li>
+          <li>刷小红书、弹尤克里里、逛B站</li>
+        </ul>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:.9">Depth · 内心</div>
+        <h3 class="h-md" style="margin-top:2vh">极度缺乏安全感的女孩</h3>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.4vh; font-family:var(--sans-zh); font-size:max(14px,1.1vw); line-height:1.65; opacity:.85">
+          <li>缺父爱——"父爱对一个女孩子很重要，但我恰好拥有的不是那么多"</li>
+          <li>对伴侣情感依赖强，表面独立内心黏人</li>
+          <li>一句话能想好几天，敏感细腻</li>
+          <li>生气了不直接说，用沉默等你发现</li>
+          <li>会翻旧账，记得每一句让她难过的话</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Page 05 · 她的两面</div><div>Portrait</div></div>
+</section>
+
+<!-- ====== 06 · 幕封：错位 ====== -->
+<section class="slide hero light">
+  <div class="chrome"><div>Act III · The Gap</div><div>06 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act III</div>
+    <h1 class="h-hero" style="font-size:8.5vw" data-anim>错位</h1>
+    <p class="lead" style="max-width:58vw" data-anim>"她被看见 vs 你给的做事"——两套完全不同的语言系统</p>
+  </div>
+  <div class="foot"><div>第三章 · 核心矛盾</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 07 · 核心矛盾 1-3 ====== -->
+<section class="slide light">
+  <div class="chrome"><div>The Core Problems · 1-3</div><div>07 / 15</div></div>
+  <div class="frame" style="padding-top:2vh; display:flex; flex-direction:column; gap:1.5vh">
+    <div class="kicker" data-anim>Problems · 五个核心矛盾</div>
+    <h2 class="h-xl" style="margin-bottom:1vh; font-size:5vw" data-anim>为什么两个人越走越远</h2>
+    <div class="col" style="gap:1.4vh">
+      <div data-anim style="font-family:var(--serif-zh); font-weight:700; font-size:1.6vw; line-height:1.3"><span class="nb" style="font-size:1.8vw">01</span> 她的爱语是"分享"，你的回应让她觉得被无视</div>
+      <p data-anim class="body-zh" style="max-width:82vw; font-size:max(13px,1.05vw)">她连早上掉了几根睫毛都告诉你。不是闲，是表达"你在我心里占满了"。但当你回得慢、回得冷、或者说她"丧失分享欲"，她收到的信息是"他不觉得我重要"。</p>
+      <div class="rule" style="margin:1.2vh 0"></div>
+      <div data-anim style="font-family:var(--serif-zh); font-weight:700; font-size:1.6vw; line-height:1.3"><span class="nb" style="font-size:1.8vw">02</span> 沉默 → 积累 → 爆发 → 道歉 → 循环</div>
+      <p data-anim class="body-zh" style="max-width:82vw; font-size:max(13px,1.05vw)">她感觉被冷落 → 不说话等你看出来 → 你没看出来 → 她更冷 → 你更莫名其妙 → 她写长消息解释 → 你觉得"又来了" → 她翻旧账 → 她道歉 → 和好 → 问题从来没解决过。</p>
+      <div class="rule" style="margin:1.2vh 0"></div>
+      <div data-anim style="font-family:var(--serif-zh); font-weight:700; font-size:1.6vw; line-height:1.3"><span class="nb" style="font-size:1.8vw">03</span> 她缺的安全感，刚好是你的盲区</div>
+      <p data-anim class="body-zh" style="max-width:82vw; font-size:max(13px,1.05vw)">"父爱对一个女孩子很重要，但是我恰好拥有的不是那么多"——这是整个关系的钥匙。你回消息慢、中间打游戏、夸别的女生、说她"没意思"——每次都在那个最深的伤口上戳。</p>
+    </div>
+  </div>
+  <div class="foot"><div>Page 07 · 核心矛盾 1-3</div><div>Problems · 1-3</div></div>
+</section>
+
+<!-- ====== 08 · 核心矛盾 4-5 ====== -->
+<section class="slide dark">
+  <div class="chrome"><div>The Core Problems · 4-5</div><div>08 / 15</div></div>
+  <div class="frame" style="padding-top:3vh; display:flex; flex-direction:column; gap:1.5vh">
+    <div class="kicker" data-anim>Problems · Continued</div>
+    <h2 class="h-xl" style="margin-bottom:1vh; font-size:5vw" data-anim>异地放大了一切</h2>
+    <div class="col" style="gap:2vh">
+      <div data-anim style="font-family:var(--serif-zh); font-weight:700; font-size:1.7vw; line-height:1.3"><span class="nb" style="font-size:1.8vw">04</span> 异地让所有问题加倍</div>
+      <p data-anim class="body-zh" style="max-width:82vw; font-size:max(13px,1.05vw)">校园时每天见面，物理存在填补了沟通裂缝。毕业后她考研你工作，只剩屏幕上的字。她说："你搬东西的过程我不像你同事在身边看在眼里，我只是看到手机屏幕上几个字，做不到像他们感同身受。"</p>
+      <div class="rule" style="margin:1.2vh 0"></div>
+      <div data-anim style="font-family:var(--serif-zh); font-weight:700; font-size:1.7vw; line-height:1.3"><span class="nb" style="font-size:1.8vw">05</span> 分手不是因为不爱了</div>
+      <p data-anim class="body-zh" style="max-width:82vw; font-size:max(13px,1.05vw)">她分手时写："喜欢过你是真的，依赖过你也是真的，因为有你而骄傲过也是真的——可是这些都慢慢偏离轨道了"。</p>
+      <div class="callout" style="margin-top:1.5vh; font-size:max(13px,1.05vw)" data-anim>"她要的被在乎的感觉，和获得这个感觉带来的不自由，矛盾了。不是不爱了，是在这段关系里，她不喜欢那个被消耗完的自己。"</div>
+    </div>
+  </div>
+  <div class="foot"><div>Page 08 · 核心矛盾 4-5</div><div>Problems · 4-5</div></div>
+</section>
+
+<!-- ====== 09 · 幕封：他的盲区 ====== -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Act IV · His Blind Spots</div><div>09 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act IV</div>
+    <h1 class="h-hero" style="font-size:8.5vw" data-anim>他的盲区</h1>
+    <p class="lead" style="max-width:58vw" data-anim>不是不爱，是不会表达爱。</p>
+  </div>
+  <div class="foot"><div>第四章 · 他需要看到的自己</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 10 · 他的五个盲区 ====== -->
+<section class="slide light">
+  <div class="chrome"><div>Blind Spots · What He Missed</div><div>10 / 15</div></div>
+  <div class="frame" style="padding-top:2vh; display:flex; flex-direction:column">
+    <div class="kicker" data-anim>Blind Spots</div>
+    <h2 class="h-xl" style="margin-bottom:2vh; font-size:5vw" data-anim>他的五个盲区</h2>
+    <div class="col" style="gap:0">
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">01</div><div><div class="t" style="font-size:max(14px,1.15vw)">不会读她的沉默</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">她语气词消失、emoji没了、回复变短——你没注意到。她说"我没事，好着呢"，你当真了。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">02</div><div><div class="t" style="font-size:max(14px,1.15vw)">说话不过脑子</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">"没意思""丧失分享欲"随口说，在她那里的重量是你的十倍。"你是第一个那么说我的"——她记一辈子。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">03</div><div><div class="t" style="font-size:max(14px,1.15vw)">觉得道歉就结束了</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">她道歉只是不想吵，不代表问题解决。每次同类型事情重演，她心里"他永远不懂我"就加深一层。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">04</div><div><div class="t" style="font-size:max(14px,1.15vw)">帮别人忙没想过她的感受</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">不解释、不问她意见。她不是不让你帮，她需要你在意她的看法。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">05</div><div><div class="t" style="font-size:max(14px,1.15vw)">不够主动</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">不是指主动发消息，是指主动发现她的情绪变化。每次都是她先开口、她先道歉、她先和好。</div></div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Page 10 · 他的盲区</div><div>Blind Spots</div></div>
+</section>
+
+<!-- ====== 11 · 幕封：不是甘蔗男 ====== -->
+<section class="slide hero light">
+  <div class="chrome"><div>Act V · The Truth</div><div>11 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act V</div>
+    <h1 class="h-hero" style="font-size:7.5vw" data-anim>不是甘蔗男</h1>
+    <p class="lead" style="max-width:58vw" data-anim>是维持关系的能力没跟上感情的深度。</p>
+  </div>
+  <div class="foot"><div>第五章 · 根因</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 12 · 不是甘蔗男（内容） ====== -->
+<section class="slide dark">
+  <div class="chrome"><div>The Truth · 根因</div><div>12 / 15</div></div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:70vh">
+    <div class="kicker" data-anim>The Root Cause</div>
+    <h2 class="h-xl" style="font-size:5vw" data-anim>甜蜜期靠本能<br>长期关系靠能力</h2>
+    <div class="col" style="gap:2.5vh; margin-top:3vh">
+      <p data-anim class="body-zh" style="max-width:78vw">甜蜜期的时候你怎么做的？主动约她、主动找话、她说一句你接十句、她冷一点你马上哄。那是<span class="hi">本能和新鲜感</span>在驱动。</p>
+      <p data-anim class="body-zh" style="max-width:78vw">新鲜感退了之后你还在意她——接送、陪背书、陪视频。但这些是<span class="hi">"做事"不是"表达"</span>。在她那个接收系统里：你帮了忙 = 你人好 ≠ 你在乎我。</p>
+      <p data-anim class="body-zh" style="max-width:78vw">你以为做了就行，她需要你说出来。你没说，她开始猜"他是不是变了"。她一猜就冷，她一冷你就懵，你一懵就更不会说。两个人就这么干耗了两年。</p>
+      <div class="callout" style="margin-top:1.5vh" data-anim>"甘蔗男嚼完就吐。你三年后还在翻聊天记录，分析自己哪错了。"<div class="callout-src">— 你不是甘蔗男，你只是当时不会</div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Page 12 · 根因分析</div><div>Root Cause</div></div>
+</section>
+
+<!-- ====== 13 · 幕封：5条建议 ====== -->
+<section class="slide hero dark">
+  <div class="chrome"><div>Act VI · Advice</div><div>13 / 15</div></div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Act VI</div>
+    <h1 class="h-hero" style="font-size:7.5vw" data-anim>5条建议</h1>
+    <p class="lead" style="max-width:55vw" data-anim>给以后的他。</p>
+  </div>
+  <div class="foot"><div>第六章 · 往前看</div><div>— · —</div></div>
+</section>
+
+<!-- ====== 14 · 5条建议 ====== -->
+<section class="slide light">
+  <div class="chrome"><div>Advice · 给以后</div><div>14 / 15</div></div>
+  <div class="frame" style="padding-top:2vh; display:flex; flex-direction:column">
+    <div class="kicker" data-anim>Advice</div>
+    <h2 class="h-xl" style="margin-bottom:2vh; font-size:5vw" data-anim>记住这五件事</h2>
+    <div class="col" style="gap:0">
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">01</div><div><div class="t" style="font-size:max(14px,1.15vw)">别把"沉默"当"没事"</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">语气变了、emoji消失了，就是信号。主动问一句"你今天是不是不太对"，比什么都管用。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">02</div><div><div class="t" style="font-size:max(14px,1.15vw)">做了要说出来</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">"我今天特别忙，可能回得慢，但我想你了"——多八个字，对方不会焦虑一整天。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">03</div><div><div class="t" style="font-size:max(14px,1.15vw)">吵架不是为了赢</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">先说"你说的我有在听"，接住情绪再讲道理。顺序对了，很多事就不会升级。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">04</div><div><div class="t" style="font-size:max(14px,1.15vw)">别再用"忙"当理由</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">忙的时候加一句"但我想你"。她说过你不加这个她就觉得被冷落。</div></div></div>
+      <div class="item" style="padding:1.2vh 0" data-anim><div style="font-family:var(--serif-en);font-weight:700;font-size:1.6vw;opacity:.3;flex-shrink:0">05</div><div><div class="t" style="font-size:max(14px,1.15vw)">学会看间接需求</div><div class="body-zh" style="margin-top:.3vh; font-size:max(12px,1vw)">有些人不会直接说"我要你陪我"。保持主动关注——哪怕只是一些很小的举动。</div></div></div>
+    </div>
+  </div>
+  <div class="foot"><div>Page 14 · 5条建议</div><div>Advice</div></div>
+</section>
+
+<!-- ====== 15 · 结尾 ====== -->
+<section class="slide hero light">
+  <div class="chrome"><div>Coda · 尾声</div><div>15 / 15</div></div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Coda</div>
+    <h1 class="h-hero" style="font-size:6vw; line-height:1.15" data-anim>你已经不是<br>三年前那个人了</h1>
+    <p class="lead" style="max-width:55vw" data-anim>迷茫说明在走新路。闭着眼走老路，是不会迷茫的。</p>
+    <div class="meta-row" style="margin-top:4vh" data-anim><span>2026.05.05</span><span>·</span><span>关系复盘报告 · 完</span></div>
+  </div>
+  <div class="foot"><div>— 给过去的两个人 · 也给未来的自己 —</div><div>🍙</div></div>
+</section>
+
+</div><!-- /deck -->
+
+<div id="nav"></div>
+
+<script>
+const VS=`attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+const FS_DARK=`precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+const FS_LIGHT=`precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+function bootGL(canvasId,fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl)return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{const d=Math.min(window.devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;gl.viewport(0,0,canvas.width,canvas.height)};
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{gl.uniform2f(lRes,canvas.width,canvas.height);gl.uniform1f(lT,tSec);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6);return true}
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){const t=(Date.now()-t0)/1000;drawDark(t);drawLight(t);requestAnimationFrame(loop)})();
+
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+deck.style.width=(total*100)+'vw';
+slides.forEach((s,i)=>{const b=document.createElement('button');b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));b.onclick=()=>go(i);nav.appendChild(b)});
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  const el=slides[idx];
+  const th=el.dataset.theme||(el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  if(window.__playSlide)setTimeout(()=>window.__playSlide(idx),450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    const title=s.querySelector('h1,h2,[class*=h-]')?.textContent?.slice(0,40)||'Slide '+(i+1);
+    card.innerHTML=`<div style="padding:2vh 1.5vw;font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.5">${String(i+1).padStart(2,'0')}</div><div style="padding:1vh 1.5vw 2.5vh;font-family:var(--serif-zh);font-weight:600;font-size:max(14px,1vw);line-height:1.3">${title}</div>`;
+    card.onclick=()=>{overviewOn=false;ov.style.display='none';go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+function toggleOverview(){overviewOn=!overviewOn;if(overviewOn){buildOverview();ov.style.display='block'}else ov.style.display='none'}
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(overviewOn)toggleOverview();return}
+  if(!overviewOn&&(e.key==='ArrowRight'||e.key==='ArrowDown')){go(idx+1)}
+  if(!overviewOn&&(e.key==='ArrowLeft'||e.key==='ArrowUp')){go(idx-1)}
+});
+let wheelAcc=0;
+addEventListener('wheel',e=>{if(overviewOn)return;wheelAcc+=e.deltaY;if(wheelAcc>50){wheelAcc=0;go(idx+1)}else if(wheelAcc<-50){wheelAcc=0;go(idx-1)}},{passive:true});
+let touchStartX=0,touchStartY=0;
+addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY});
+addEventListener('touchend',e=>{if(overviewOn)return;const dx=e.changedTouches[0].clientX-touchStartX;const dy=e.changedTouches[0].clientY-touchStartY;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){go(idx+(dx<0?1:-1))}else if(Math.abs(dy)>40){go(idx+(dy<0?1:-1))}});
+addEventListener('click',e=>{if(overviewOn&&!e.target.closest('#overview'))toggleOverview()});
+go(0);
+
+(function loadMotion(){
+  // Simple reveal: all [data-anim] elements are already visible.
+  // Try Motion One for enhanced animations, fail gracefully.
+  const playPage=(n)=>{
+    const slide=slides[n];
+    if(!slide)return;
+    const els=slide.querySelectorAll('[data-anim]');
+    if(!els.length)return;
+    // Elements already visible via CSS. Just a no-op if Motion unavailable.
+  };
+  window.__playSlide=playPage;
+
+  const onReady=()=>{
+    // motion-ready class disabled to prevent content hiding
+    const animMap=new Map();
+    const doPage=(n)=>{
+      if(animMap.has(n)){animMap.get(n)();return}
+      const slide=slides[n];
+      if(!slide)return;
+      const els=slide.querySelectorAll('[data-anim]');
+      if(!els.length)return;
+      const recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+      let cfg={duration:.55,easing:[.25,0,.15,1]};
+      if(recipe==='hero')cfg={duration:.8,easing:[.33,0,.2,1]};
+      else if(recipe==='quote')cfg={duration:.7,easing:[.33,0,.2,1]};
+      else if(recipe==='directional')cfg={duration:.5,easing:[.25,0,.15,1]};
+      try{
+        const seq=motion.animate(
+          Array.from(els).map((el,i)=>{
+            let dur=cfg.duration;
+            let del=i*(recipe==='quote'?.55:recipe==='hero'?.18:.12);
+            let from={opacity:0,y:16};
+            if(el.dataset.anim==='left'){from={opacity:0,x:-24};del=i*.06}
+            else if(el.dataset.anim==='right'){from={opacity:0,x:24};del=i*.06}
+            else if(el.dataset.anim==='line'){from={opacity:0,y:10};del=i*.55}
+            return [el,{opacity:1,x:0,y:0},{duration:dur,delay:del,easing:cfg.easing}];
+          }),{duration:cfg.duration}
+        );
+        if(seq&&seq.finished)animMap.set(n,()=>seq.play());
+      }catch(e){}
+    };
+    window.__playSlide=doPage;
+    doPage(0);
+  };
+
+  if(typeof motion!=='undefined'){onReady();return}
+  const script=document.createElement('script');
+  script.src='assets/motion.min.js';
+  script.onload=onReady;
+  script.onerror=()=>{}; // motion failed, elements stay visible
+  document.head.appendChild(script);
+})();
+</script>
+</body>
+</html>
